@@ -10,13 +10,25 @@ public class TreeElement {
     @Id
     @GeneratedValue
     private long id;
-    private String filename = null;
+    private String fileName = null;
+
+    private String elementName = null;
+
+    private Boolean wasDeleted = false;
+
+    private Boolean isRoot = false;
 
     @OneToMany
     private List<TreeElement> children = new ArrayList<>();
 
-    private Boolean wasDeleted = false;
 
+    public Boolean getRoot() {
+        return isRoot;
+    }
+
+    public void setRoot(Boolean root) {
+        isRoot = root;
+    }
 
     public long getId() {
         return id;
@@ -26,12 +38,12 @@ public class TreeElement {
         this.id = id;
     }
 
-    public String getFilename() {
-        return filename;
+    public String getFileName() {
+        return fileName;
     }
 
-    public void setFilename(String filename) {
-        this.filename = filename;
+    public void setFileName(String filename) {
+        this.fileName = filename;
     }
 
     public List<TreeElement> getChildren() {
@@ -42,11 +54,11 @@ public class TreeElement {
         this.children = children;
     }
 
-    public Boolean getWasDeleted() {
-        return wasDeleted;
-    }
+    public Boolean getWasDeleted() {return wasDeleted;}
 
-    public void setWasDeleted(Boolean wasDeleted) {
-        this.wasDeleted = wasDeleted;
-    }
+    public void setWasDeleted(Boolean wasDeleted) {this.wasDeleted = wasDeleted;}
+
+    public String getElementName() {return elementName;}
+
+    public void setElementName(String elementName) {this.elementName = elementName;}
 }
