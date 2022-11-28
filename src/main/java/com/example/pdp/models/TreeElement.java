@@ -21,6 +21,13 @@ public class TreeElement {
     @OneToMany
     private List<TreeElement> children = new ArrayList<>();
 
+    public boolean isFolder() {
+        return getFileName() == null;
+    }
+
+    public boolean isPage() {
+        return getFileName() != null;
+    }
 
     public Boolean getRoot() {
         return isRoot;
