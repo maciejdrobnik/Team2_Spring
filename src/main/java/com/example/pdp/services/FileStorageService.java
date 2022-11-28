@@ -1,6 +1,7 @@
 package com.example.pdp.services;
 
 import com.example.pdp.property.FileStorageProperties;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -17,8 +18,6 @@ import java.util.UUID;
 
 @Service
 public class FileStorageService {
-    private final String[] allowedExtensions = {".jpg", ".jpeg", ".png", ".bmp", ".gif"};
-
     private final Path fileStorageLocation;
 
     @Autowired
@@ -34,7 +33,7 @@ public class FileStorageService {
     }
 
     public String storeFile(MultipartFile file) {
-        String filename = UUID.randomUUID() + getFileExtension(file.getOriginalFilename());
+        String filename = UUID.randomUUID() + FilenameUtils.getExtension(file.getOriginalFilename());
 
         try {
             // Check if the file's name contains invalid characters
@@ -64,13 +63,5 @@ public class FileStorageService {
         } catch (MalformedURLException ex) {
             throw new RuntimeException("File not found " + fileName, ex);
         }
-    }
-
-    private String getFileExtension(String filename) {
-        for (String extension : allowedExtensions) {
-            if (filename.toLowerCase().endsWith(extension))
-                return extension;
-        }
-        return "";
     }
 }
