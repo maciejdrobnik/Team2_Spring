@@ -27,13 +27,13 @@ public class TreeElementRESTController {
     }
 
 
-    @GetMapping
+    @GetMapping("/all")
     // GetAll without filtering of deleted children
     public List<TreeElement> findAllTreeElements() {
         return treeElementRepository.findAll().stream().filter(e -> e.getRoot() & !e.getWasDeleted()).toList();
     }
 
-    @GetMapping("/getAll")
+    @GetMapping
     // GetAll with filtering of deleted children
     public List<TreeElement> newFindAllElements() {
         List<TreeElement> listToReturn = new ArrayList<>();
@@ -46,7 +46,9 @@ public class TreeElementRESTController {
     }
 
     public TreeElement getElementWithImmediateChildren(long id){
-        TreeElement element = treeElementRepository.findById(id);
+        TreeElement element = treeElementRepository.findById(id).orElse(null);
+        if (element == null) return null;
+
         List<TreeElement> children = new ArrayList<>(element.getChildren());
 
         for(TreeElement child: element.getChildren()){
@@ -93,10 +95,6 @@ public class TreeElementRESTController {
     @PostMapping("page/parent/{id}")
     public ResponseEntity<TreeElement> addNewPage(@RequestBody PageDTO newPageDTO, @PathVariable("id") long id) {
         TreeElement parent = treeElementRepository.findById(id).orElse(null);
-
-        // generating a unique fileName for the new page
-        String filename = UUID.randomUUID().toString();
-        Path filePath = Path.of("src/main/resources/pages/" + filename + ".txt");
 
         if (parent == null || parent.getWasDeleted()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
