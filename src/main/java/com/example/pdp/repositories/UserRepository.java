@@ -5,6 +5,4 @@ import org.springframework.stereotype.Repository;
 import com.example.pdp.models.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-    User findById(long id);
-}
+public interface UserRepository extends JpaRepository<User, Long> { }
