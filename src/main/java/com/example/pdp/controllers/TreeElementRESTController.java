@@ -27,19 +27,51 @@ public class TreeElementRESTController {
         //this.userRepository = userRepository;
     }
 
+
     @GetMapping
+    // GetAll without filtering of deleted children
     public List<TreeElement> findAllTreeElements() {
-        // no filtering of deleted children yet
         return treeElementRepository.findAll().stream().filter(e -> e.getRoot() & !e.getWasDeleted()).toList();
+    }
+
+    @GetMapping("/getAll")
+    // GetAll with filtering of deleted children
+    public List<TreeElement> newFindAllElements() {
+        List<TreeElement> listToReturn = new ArrayList<>();
+        for (TreeElement element: findAllTreeElements()) {
+            if(getElementWithImmediateChildren(element.getId()) != null){
+                listToReturn.add(getElementWithImmediateChildren(element.getId()));
+            }
+        }
+        return listToReturn;
+    }
+
+    public TreeElement getElementWithImmediateChildren(long id){
+        TreeElement element = treeElementRepository.findById(id);
+        List<TreeElement> children = new ArrayList<>(element.getChildren());
+
+        for(TreeElement child: element.getChildren()){
+            if(element.getWasDeleted()){
+                return null;
+            }
+            if(child.getWasDeleted()){
+                children.remove(child);
+            }
+            else{
+                 children.set(children.indexOf(child), getElementWithImmediateChildren(child.getId()));
+            }
+        }
+        element.setChildren(children);
+
+        return element;
     }
 
 
     @GetMapping("/{id}")
     public ResponseEntity<PageDTO> findTreeElement(@PathVariable("id") long id) {
-        // no filtering of deleted children yet
         TreeElement element = treeElementRepository.findById(id);
-        if(element == null){
-            System.out.println("Tree element not found!");
+        if(element == null || element.getWasDeleted() || element.getFileName() == null){
+            System.out.println("Tree element was not found, was deleted, or is a folder!");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
@@ -67,7 +99,7 @@ public class TreeElementRESTController {
     public ResponseEntity<TreeElement> addNewPage(@RequestBody PageDTO newPageDTO, @PathVariable("id") long id) {
         TreeElement foundElement = treeElementRepository.findById(id);
 
-        // generating a unique fileName foer the new page
+        // generating a unique fileName for the new page
         String filename = UUID.randomUUID().toString();
         Path filePath = Path.of("src/main/resources/pages/" + filename + ".txt");
 
