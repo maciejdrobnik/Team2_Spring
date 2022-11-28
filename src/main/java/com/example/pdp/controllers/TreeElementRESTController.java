@@ -26,9 +26,43 @@ public class TreeElementRESTController {
         this.treeElementRepository = treeElementRepository;
     }
 
+
     @GetMapping
+    // GetAll without filtering of deleted children
     public List<TreeElement> findAllTreeElements() {
         return treeElementRepository.findAll().stream().filter(e -> e.getRoot() & !e.getWasDeleted()).toList();
+    }
+
+    @GetMapping("/getAll")
+    // GetAll with filtering of deleted children
+    public List<TreeElement> newFindAllElements() {
+        List<TreeElement> listToReturn = new ArrayList<>();
+        for (TreeElement element: findAllTreeElements()) {
+            if(getElementWithImmediateChildren(element.getId()) != null){
+                listToReturn.add(getElementWithImmediateChildren(element.getId()));
+            }
+        }
+        return listToReturn;
+    }
+
+    public TreeElement getElementWithImmediateChildren(long id){
+        TreeElement element = treeElementRepository.findById(id);
+        List<TreeElement> children = new ArrayList<>(element.getChildren());
+
+        for(TreeElement child: element.getChildren()){
+            if(element.getWasDeleted()){
+                return null;
+            }
+            if(child.getWasDeleted()){
+                children.remove(child);
+            }
+            else{
+                 children.set(children.indexOf(child), getElementWithImmediateChildren(child.getId()));
+            }
+        }
+        element.setChildren(children);
+
+        return element;
     }
 
 
@@ -55,9 +89,14 @@ public class TreeElementRESTController {
     }
 
 
+
     @PostMapping("page/parent/{id}")
     public ResponseEntity<TreeElement> addNewPage(@RequestBody PageDTO newPageDTO, @PathVariable("id") long id) {
         TreeElement parent = treeElementRepository.findById(id).orElse(null);
+
+        // generating a unique fileName for the new page
+        String filename = UUID.randomUUID().toString();
+        Path filePath = Path.of("src/main/resources/pages/" + filename + ".txt");
 
         if (parent == null || parent.getWasDeleted()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
