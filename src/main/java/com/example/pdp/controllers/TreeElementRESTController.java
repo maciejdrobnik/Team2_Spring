@@ -1,12 +1,9 @@
 package com.example.pdp.controllers;
 
 
-import com.example.pdp.models.FolderDTO;
-import com.example.pdp.models.PageDTO;
-import com.example.pdp.models.Tag;
+import com.example.pdp.models.*;
 import com.example.pdp.repositories.TagRepository;
 import com.example.pdp.repositories.TreeElementRepository;
-import com.example.pdp.models.TreeElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +31,38 @@ public class TreeElementRESTController {
     // GetAll without filtering of deleted children
     public List<TreeElement> findAllTreeElements() {
         return treeElementRepository.findAll().stream().filter(e -> e.getRoot() & !e.getWasDeleted()).toList();
+    }
+
+    @GetMapping("/menu")
+    public List<MenuElementDTO> getMenu() {
+        List<MenuElementDTO> menu = new ArrayList<>();
+        for(TreeElement element: findAllTreeElements()){
+            if(getMenuElementWithChildren(element.getId()) != null){
+                menu.add(getMenuElementWithChildren(element.getId()));
+            }
+        }
+        return menu;
+    }
+
+    public MenuElementDTO getMenuElementWithChildren(long id){
+        TreeElement element = treeElementRepository.findById(id).orElse(null);
+        if (element == null || element.getWasDeleted()) return null;
+
+        MenuElementDTO menuElement = new MenuElementDTO();
+        menuElement.setId(element.getId());
+        menuElement.setName(element.getElementName());
+
+        for(Tag tag: element.getTags()){
+            menuElement.addTag(tag.getName());
+        }
+
+        for(TreeElement child: element.getChildren()){
+            if(!child.getWasDeleted()) {
+                menuElement.addChild(getMenuElementWithChildren(child.getId()));
+            }
+        }
+
+        return menuElement;
     }
 
     @GetMapping
