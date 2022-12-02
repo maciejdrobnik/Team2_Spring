@@ -21,6 +21,9 @@ public class TreeElement {
     @OneToMany
     private List<TreeElement> children = new ArrayList<>();
 
+    @ManyToMany
+    private List<Tag> tags = new ArrayList<>();
+
     public boolean isFolder() {
         return getFileName() == null;
     }
@@ -59,6 +62,14 @@ public class TreeElement {
 
     public void setChildren(List<TreeElement> children) {
         this.children = children;
+    }
+
+    public List<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<Tag> tags) {
+        this.tags = tags;
     }
 
     public Boolean getWasDeleted() {return wasDeleted;}

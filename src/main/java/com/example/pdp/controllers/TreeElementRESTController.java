@@ -3,9 +3,10 @@ package com.example.pdp.controllers;
 
 import com.example.pdp.models.FolderDTO;
 import com.example.pdp.models.PageDTO;
+import com.example.pdp.models.Tag;
+import com.example.pdp.repositories.TagRepository;
 import com.example.pdp.repositories.TreeElementRepository;
 import com.example.pdp.models.TreeElement;
-import com.example.pdp.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,12 @@ import java.nio.file.*;
 public class TreeElementRESTController {
 
     private final TreeElementRepository treeElementRepository;
+    private final TagRepository tagRepository;
 
     @Autowired
-    public TreeElementRESTController(TreeElementRepository treeElementRepository) {
+    public TreeElementRESTController(TreeElementRepository treeElementRepository, TagRepository tagRepository) {
         this.treeElementRepository = treeElementRepository;
+        this.tagRepository = tagRepository;
     }
 
 
@@ -78,6 +81,13 @@ public class TreeElementRESTController {
 
         PageDTO page = new PageDTO();
         page.setPageName(element.getElementName());
+
+        List<String> tags = new ArrayList<>();
+        for (Tag tag: element.getTags()) {
+            tags.add(tag.getName());
+        }
+        page.setTags(tags);
+
         Path filePath = Path.of("src/main/resources/pages/" + element.getFileName());
 
         try {
@@ -117,6 +127,24 @@ public class TreeElementRESTController {
         element.setRoot(false);
         element.setFileName(filename);
         element.setElementName(newPageDTO.getPageName());
+
+        for (String tag: newPageDTO.getTags()) {
+            if(tagRepository.findByName(tag.toLowerCase()) == null){
+                Tag newTag = new Tag();
+                newTag.setName(tag.toLowerCase());
+                List<Tag> tags = element.getTags();
+                tags.add(newTag);
+                element.setTags(tags);
+                tagRepository.save(newTag);
+            }
+            else{
+                Tag newTag = new Tag();
+                newTag.setName(tag);
+                newTag.setId(tagRepository.findByName(tag.toLowerCase()).getId());
+                element.getTags().add(newTag);
+                tagRepository.save(newTag);
+            }
+        }
 
         try {
             Files.createFile(filePath);
@@ -190,6 +218,36 @@ public class TreeElementRESTController {
 
         if (updatedDTO.getPageName() != null) {
             elementToUpdate.setElementName(updatedDTO.getPageName());
+        }
+
+        if (updatedDTO.getTags() != null && !updatedDTO.getTags().isEmpty() ) {
+            List<String> elementTags = new ArrayList<>();
+            for (Tag tag: elementToUpdate.getTags()) {
+                elementTags.add(tag.getName());
+            }
+
+            elementToUpdate.setTags(new ArrayList<>());
+
+            for (String tag: updatedDTO.getTags()) {
+                if(tagRepository.findByName(tag.toLowerCase()) == null){
+                    Tag newTag = new Tag();
+                    newTag.setName(tag.toLowerCase());
+                    tagRepository.save(newTag);
+                    List<Tag> tags = elementToUpdate.getTags();
+                    tags.add(newTag);
+                    elementToUpdate.setTags(tags);
+                }
+                else if(elementTags.contains(tag)){
+                    Tag newTag = new Tag();
+                    newTag.setName(tag);
+                    newTag.setId(tagRepository.findByName(tag.toLowerCase()).getId());
+                    elementToUpdate.getTags().add(newTag);
+                    tagRepository.save(newTag);
+                }
+            }
+        }
+        else if(updatedDTO.getTags().isEmpty()){
+            elementToUpdate.setTags(new ArrayList<>());
         }
 
         if (updatedDTO.getContent() != null) {
