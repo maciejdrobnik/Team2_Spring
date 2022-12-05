@@ -12,5 +12,4 @@ public class PdpApplication {
     public static void main(String[] args) {
         SpringApplication.run(PdpApplication.class, args);
     }
-
 }
