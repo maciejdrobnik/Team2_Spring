@@ -14,6 +14,7 @@ import java.io.*;
 import java.nio.file.*;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/")
 public class TreeElementRESTController {
 
