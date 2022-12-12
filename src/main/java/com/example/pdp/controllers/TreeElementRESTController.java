@@ -14,6 +14,7 @@ import java.io.*;
 import java.nio.file.*;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/")
 public class TreeElementRESTController {
 
@@ -51,7 +52,7 @@ public class TreeElementRESTController {
         MenuElementDTO menuElement = new MenuElementDTO();
         menuElement.setId(element.getId());
         menuElement.setName(element.getElementName());
-
+        menuElement.setRoot(element.getRoot());
         for(Tag tag: element.getTags()){
             menuElement.addTag(tag.getName());
         }

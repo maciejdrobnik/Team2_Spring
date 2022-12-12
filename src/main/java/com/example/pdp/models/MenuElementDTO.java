@@ -11,6 +11,16 @@ public class MenuElementDTO {
 
     private List<MenuElementDTO> children = new ArrayList<>();
 
+    private boolean isRoot = false;
+
+    public boolean getIsRoot() {
+        return isRoot;
+    }
+
+    public void setRoot(boolean root) {
+        isRoot = root;
+    }
+
     public String getName() {
         return name;
     }
