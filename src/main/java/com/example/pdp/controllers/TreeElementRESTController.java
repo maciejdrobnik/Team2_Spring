@@ -5,6 +5,7 @@ import com.example.pdp.models.*;
 import com.example.pdp.repositories.TagRepository;
 import com.example.pdp.repositories.TreeElementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.io.*;
 import java.nio.file.*;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/")
 public class TreeElementRESTController {
 
@@ -58,7 +60,7 @@ public class TreeElementRESTController {
         return menu;
     }
 
-    public MenuElementDTO getMenuElementWithChildren(long id){
+    private MenuElementDTO getMenuElementWithChildren(long id){
         TreeElement element = treeElementRepository.findById(id).orElse(null);
         if (element == null || element.getWasDeleted()) return null;
 
@@ -118,35 +120,16 @@ public class TreeElementRESTController {
     public ResponseEntity<PageDTO> findPage(@PathVariable("id") long id) {
         TreeElement element = treeElementRepository.findById(id).orElse(null);
 
-        if (element == null || element.getWasDeleted()) {
+        if (element == null || element.getWasDeleted())
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
 
-        PageDTO page = new PageDTO();
-        page.setPageName(element.getElementName());
-
-        List<String> tags = new ArrayList<>();
-        for (Tag tag: element.getTags()) {
-            tags.add(tag.getName());
-        }
-        page.setTags(tags);
-
-        Path filePath = Path.of("src/main/resources/pages/" + element.getFileName());
-
-        try {
-            page.setContent(Files.readString(filePath));
-        } catch (IOException e) {
-            System.out.println("IOException has occured, something's wrong");
-            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
-        }
-
-        return new ResponseEntity<>(page, HttpStatus.OK);
+        return new ResponseEntity<>(new PageDTO(element), HttpStatus.OK);
     }
 
 
 
     @PostMapping("page/parent/{id}")
-    public ResponseEntity<TreeElement> addNewPage(@RequestBody PageDTO newPageDTO, @PathVariable("id") long id) {
+    public ResponseEntity<PageDTO> addNewPage(@RequestBody PageDTO newPageDTO, @PathVariable("id") long id) {
         TreeElement parent = treeElementRepository.findById(id).orElse(null);
 
         if (parent == null || parent.getWasDeleted()) {
@@ -205,9 +188,8 @@ public class TreeElementRESTController {
 
 
     @PostMapping("/folder/{lang}")
-    public ResponseEntity<PageDTO> addNewRootFolder(@RequestBody FolderDTO newFolderDTO, @PathVariable("lang") String lang) {
+    public ResponseEntity<FolderDTO> addNewRootFolder(@RequestBody FolderDTO newFolderDTO, @PathVariable("lang") String lang) {
         if (newFolderDTO.getFolderName() == null) {
-            System.out.println("The given folder to create doesn't have a name, no folder created.");
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
 
@@ -235,11 +217,11 @@ public class TreeElementRESTController {
         newElement.setElementName(newFolderDTO.getFolderName());
         treeElementRepository.save(newElement);
 
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(new FolderDTO(newElement), HttpStatus.CREATED);
     }
 
     @PostMapping("/folder/parent/{id}")
-    public ResponseEntity<PageDTO> addNewChildFolder(@RequestBody FolderDTO newFolderDTO, @PathVariable("id") long id) {
+    public ResponseEntity<FolderDTO> addNewChildFolder(@RequestBody FolderDTO newFolderDTO, @PathVariable("id") long id) {
         TreeElement parent = treeElementRepository.findById(id).orElse(null);
         TreeElement element = new TreeElement();
 
@@ -262,7 +244,7 @@ public class TreeElementRESTController {
         children.add(element);
         parent.setChildren(children);
         treeElementRepository.save(element);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(new FolderDTO(element) ,HttpStatus.CREATED);
     }
 
     @PatchMapping("page/{id}")
@@ -322,7 +304,7 @@ public class TreeElementRESTController {
 
         treeElementRepository.save(elementToUpdate);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(new PageDTO(elementToUpdate) ,HttpStatus.OK);
     }
 
     @PatchMapping("folder/{id}")
@@ -343,7 +325,7 @@ public class TreeElementRESTController {
 
         treeElementRepository.save(elementToUpdate);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(new FolderDTO(elementToUpdate), HttpStatus.OK);
     }
     
 
