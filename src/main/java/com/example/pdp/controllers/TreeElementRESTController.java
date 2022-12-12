@@ -31,14 +31,28 @@ public class TreeElementRESTController {
 
     @GetMapping("/all")
     // GetAll without filtering of deleted children
-    public List<TreeElement> findAllTreeElements() {
-        return treeElementRepository.findAll().stream().filter(e -> e.getRoot() & !e.getWasDeleted()).toList();
+    public List<TreeElement> findAllTreeElements(String lang) {
+        if(lang.isEmpty()){
+            return treeElementRepository.findAll().stream().filter(e -> e.getRoot() & !e.getWasDeleted()).toList();
+        }
+
+        List<TreeElement> roots = new ArrayList<>(treeElementRepository.findAll().stream().filter(e -> e.getRoot() & !e.getWasDeleted()).toList());
+        List<TreeElement> toReturn = new ArrayList<>();
+        for(TreeElement element : roots){
+            for(Tag tag: element.getTags()){
+                if(tag.getName().equals(lang)){
+                    toReturn.add(element);
+                }
+            }
+        }
+
+        return toReturn;
     }
 
-    @GetMapping("/menu")
-    public List<MenuElementDTO> getMenu() {
+    @GetMapping("/menu/{lang}")
+    public List<MenuElementDTO> getMenu(@PathVariable("lang") String lang) {
         List<MenuElementDTO> menu = new ArrayList<>();
-        for(TreeElement element: findAllTreeElements()){
+        for(TreeElement element: findAllTreeElements(lang)){
             if(getMenuElementWithChildren(element.getId()) != null){
                 menu.add(getMenuElementWithChildren(element.getId()));
             }
@@ -53,7 +67,7 @@ public class TreeElementRESTController {
         MenuElementDTO menuElement = new MenuElementDTO();
         menuElement.setId(element.getId());
         menuElement.setName(element.getElementName());
-        menuElement.setRoot(element.getRoot());
+
         for(Tag tag: element.getTags()){
             menuElement.addTag(tag.getName());
         }
@@ -71,7 +85,7 @@ public class TreeElementRESTController {
     // GetAll with filtering of deleted children
     public List<TreeElement> newFindAllElements() {
         List<TreeElement> listToReturn = new ArrayList<>();
-        for (TreeElement element: findAllTreeElements()) {
+        for (TreeElement element: findAllTreeElements("")) {
             if(getElementWithImmediateChildren(element.getId()) != null){
                 listToReturn.add(getElementWithImmediateChildren(element.getId()));
             }
@@ -79,7 +93,7 @@ public class TreeElementRESTController {
         return listToReturn;
     }
 
-    private TreeElement getElementWithImmediateChildren(long id){
+    public TreeElement getElementWithImmediateChildren(long id){
         TreeElement element = treeElementRepository.findById(id).orElse(null);
         if (element == null) return null;
 
@@ -123,7 +137,7 @@ public class TreeElementRESTController {
         }
 
         if (parent.isPage()) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
         if (newPageDTO.getPageName() == null || newPageDTO.getContent() == null) {
@@ -169,17 +183,35 @@ public class TreeElementRESTController {
 
         treeElementRepository.save(element);
 
-        return new ResponseEntity<>(new PageDTO(element) ,HttpStatus.CREATED);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 
-    @PostMapping("/folder")
-    public ResponseEntity<FolderDTO> addNewRootFolder(@RequestBody FolderDTO newFolderDTO) {
+    @PostMapping("/folder/{lang}")
+    public ResponseEntity<FolderDTO> addNewRootFolder(@RequestBody FolderDTO newFolderDTO, @PathVariable("lang") String lang) {
         if (newFolderDTO.getFolderName() == null) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
 
+        List<String> languages = Arrays.asList("polish", "english", "french");
+        if(!languages.contains(lang)){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         TreeElement newElement = new TreeElement();
+
+        if(tagRepository.findByName(lang) == null){
+            Tag newTag = new Tag(lang);
+            List<Tag> tags = List.of(newTag);
+            newElement.setTags(tags);
+            tagRepository.save(newTag);
+        }
+        else{
+            Tag newTag = new Tag(lang);
+            newTag.setId(tagRepository.findByName(lang).getId());
+            newElement.getTags().add(newTag);
+            tagRepository.save(newTag);
+        }
 
         newElement.setRoot(true);
         newElement.setElementName(newFolderDTO.getFolderName());
