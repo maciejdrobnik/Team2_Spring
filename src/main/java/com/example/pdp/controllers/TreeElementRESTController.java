@@ -129,7 +129,7 @@ public class TreeElementRESTController {
 
 
     @PostMapping("page/parent/{id}")
-    public ResponseEntity<PageDTO> addNewPage(@RequestBody PageDTO newPageDTO, @PathVariable("id") long id) {
+    public ResponseEntity<Long> addNewPage(@RequestBody PageDTO newPageDTO, @PathVariable("id") long id) {
         TreeElement parent = treeElementRepository.findById(id).orElse(null);
 
         if (parent == null || parent.getWasDeleted()) {
@@ -183,7 +183,7 @@ public class TreeElementRESTController {
 
         treeElementRepository.save(element);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(element.getId(),HttpStatus.OK);
     }
 
 
