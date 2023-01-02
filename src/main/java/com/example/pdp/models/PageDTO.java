@@ -13,6 +13,8 @@ public class PageDTO {
     private String pageName = null;
     private String content = null;
 
+    private long id;
+
     private List<String> tags = new ArrayList<>();
 
     public PageDTO() {
@@ -21,7 +23,7 @@ public class PageDTO {
     public PageDTO(TreeElement treeElement) {
         this.pageName = treeElement.getElementName();
         this.tags = treeElement.getTags().stream().map(Tag::getName).toList();
-
+        this.id = treeElement.getId();
         Path filePath = Path.of("src/main/resources/pages/" + treeElement.getFileName());
         try {
             this.content = Files.readString(filePath);
@@ -52,5 +54,13 @@ public class PageDTO {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }

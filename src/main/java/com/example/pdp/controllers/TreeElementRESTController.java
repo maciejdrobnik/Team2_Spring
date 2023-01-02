@@ -183,7 +183,7 @@ public class TreeElementRESTController {
 
         treeElementRepository.save(element);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(new PageDTO(element) ,HttpStatus.OK);
     }
 
 
