@@ -67,6 +67,8 @@ public class TreeElementRESTController {
         MenuElementDTO menuElement = new MenuElementDTO();
         menuElement.setId(element.getId());
         menuElement.setName(element.getElementName());
+        menuElement.setRoot(element.getRoot());
+        menuElement.setFileName(element.getFileName());
 
         for(Tag tag: element.getTags()){
             menuElement.addTag(tag.getName());
