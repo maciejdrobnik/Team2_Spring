@@ -1,13 +1,13 @@
 package com.example.pdp.repositories;
 
-import com.example.pdp.models.Tag;
+import com.example.pdp.models.Role;
+import com.example.pdp.models.RoleName;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.Table;
 import java.util.Optional;
 
 @Repository
-public interface TagRepository  extends JpaRepository<Tag, Long> {
-    public Tag findByName(String value);
+public interface RoleRepository extends JpaRepository<Role, Long> {
+    Optional<Role> findByName(RoleName roleName);
 }

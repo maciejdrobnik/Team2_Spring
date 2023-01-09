@@ -1,38 +1,53 @@
 package com.example.pdp.models;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
+@Table(name="users")
 public class User {
 
     @Id
-    @GeneratedValue
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private String name;
+    @NotBlank
+    @Size(min=3, max = 50)
+    private String username;
+
+    @NotBlank
+    @Size(min=6, max = 100)
     private String password;
 
-    @ManyToMany
-    private List<TreeElement> permittedTreeElements = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.EAGER)
+    private Set<Role> roles = new HashSet<>();
 
-    private Boolean wasDeleted = false;
+    public User() {
+    }
 
-    public long getId() {
+    public User(@NotBlank @Size(min = 3, max = 50) String username,
+                @NotBlank @Size(min = 6, max = 100) String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -43,19 +58,11 @@ public class User {
         this.password = password;
     }
 
-    public List<TreeElement> getPermittedTreeElements() {
-        return permittedTreeElements;
+    public Set<Role> getRoles() {
+        return roles;
     }
 
-    public void setPermittedTreeElements(List<TreeElement> permittedTreeElements) {
-        this.permittedTreeElements = permittedTreeElements;
-    }
-
-    public Boolean getWasDeleted() {
-        return wasDeleted;
-    }
-
-    public void setWasDeleted(Boolean wasDeleted) {
-        this.wasDeleted = wasDeleted;
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 }
