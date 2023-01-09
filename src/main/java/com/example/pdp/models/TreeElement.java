@@ -79,4 +79,12 @@ public class TreeElement {
     public String getElementName() {return elementName;}
 
     public void setElementName(String elementName) {this.elementName = elementName;}
+
+    public boolean addTag(Tag tag) {
+        if(!tags.contains(tag)){
+            tags.add(tag);
+            return true;
+        }
+        return false;
+    }
 }

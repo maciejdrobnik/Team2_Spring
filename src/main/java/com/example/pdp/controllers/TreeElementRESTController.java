@@ -67,6 +67,8 @@ public class TreeElementRESTController {
         MenuElementDTO menuElement = new MenuElementDTO();
         menuElement.setId(element.getId());
         menuElement.setName(element.getElementName());
+        menuElement.setRoot(element.getRoot());
+        menuElement.setFileName(element.getFileName());
 
         for(Tag tag: element.getTags()){
             menuElement.addTag(tag.getName());
@@ -171,6 +173,9 @@ public class TreeElementRESTController {
                 tagRepository.save(newTag);
             }
         }
+        Tag folderNameTag = new Tag(newPageDTO.getPageName().toLowerCase());
+        element.addTag(folderNameTag);
+        tagRepository.save(folderNameTag);
 
         try {
             Files.createFile(filePath);
@@ -212,6 +217,9 @@ public class TreeElementRESTController {
             newElement.getTags().add(newTag);
             tagRepository.save(newTag);
         }
+        Tag folderNameTag = new Tag(newFolderDTO.getFolderName().toLowerCase());
+        newElement.addTag(folderNameTag);
+        tagRepository.save(folderNameTag);
 
         newElement.setRoot(true);
         newElement.setElementName(newFolderDTO.getFolderName());
@@ -225,6 +233,7 @@ public class TreeElementRESTController {
         TreeElement parent = treeElementRepository.findById(id).orElse(null);
         TreeElement element = new TreeElement();
 
+        System.out.println(newFolderDTO.getTags());
         if (parent == null || parent.getWasDeleted()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -239,6 +248,28 @@ public class TreeElementRESTController {
 
         List<TreeElement> children = parent.getChildren();
         element.setRoot(false);
+
+        for (String tag: newFolderDTO.getTags()) {
+            if(tagRepository.findByName(tag.toLowerCase()) == null){
+                Tag newTag = new Tag();
+                newTag.setName(tag.toLowerCase());
+                List<Tag> tags = element.getTags();
+                tags.add(newTag);
+                element.setTags(tags);
+                tagRepository.save(newTag);
+            }
+            else{
+                Tag newTag = new Tag();
+                newTag.setName(tag);
+                newTag.setId(tagRepository.findByName(tag.toLowerCase()).getId());
+                element.getTags().add(newTag);
+                tagRepository.save(newTag);
+            }
+        }
+
+        Tag folderNameTag = new Tag(newFolderDTO.getFolderName().toLowerCase());
+        element.addTag(folderNameTag);
+        tagRepository.save(folderNameTag);
 
         element.setElementName(newFolderDTO.getFolderName());
         children.add(element);
