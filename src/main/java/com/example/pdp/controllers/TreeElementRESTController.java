@@ -128,6 +128,16 @@ public class TreeElementRESTController {
         return new ResponseEntity<>(new PageDTO(element), HttpStatus.OK);
     }
 
+    @GetMapping("folder/{id}")
+    public ResponseEntity<FolderDTO> findFolder(@PathVariable("id") long id) {
+        TreeElement element = treeElementRepository.findById(id).orElse(null);
+
+        if (element == null || element.getWasDeleted())
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(new FolderDTO(element), HttpStatus.OK);
+    }
+
 
 
     @PostMapping("page/parent/{id}")
