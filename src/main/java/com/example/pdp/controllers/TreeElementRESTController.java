@@ -364,6 +364,36 @@ public class TreeElementRESTController {
             elementToUpdate.setElementName(updatedDTO.getFolderName());
         }
 
+        if (updatedDTO.getTags() != null && !updatedDTO.getTags().isEmpty() ) {
+            List<String> elementTags = new ArrayList<>();
+            for (Tag tag: elementToUpdate.getTags()) {
+                elementTags.add(tag.getName());
+            }
+
+            elementToUpdate.setTags(new ArrayList<>());
+
+            for (String tag: updatedDTO.getTags()) {
+                if(tagRepository.findByName(tag.toLowerCase()) == null){
+                    Tag newTag = new Tag();
+                    newTag.setName(tag.toLowerCase());
+                    tagRepository.save(newTag);
+                    List<Tag> tags = elementToUpdate.getTags();
+                    tags.add(newTag);
+                    elementToUpdate.setTags(tags);
+                }
+                else if(elementTags.contains(tag)){
+                    Tag newTag = new Tag();
+                    newTag.setName(tag);
+                    newTag.setId(tagRepository.findByName(tag.toLowerCase()).getId());
+                    elementToUpdate.getTags().add(newTag);
+                    tagRepository.save(newTag);
+                }
+            }
+        }
+        else if(updatedDTO.getTags().isEmpty()){
+            elementToUpdate.setTags(new ArrayList<>());
+        }
+
         treeElementRepository.save(elementToUpdate);
 
         return new ResponseEntity<>(new FolderDTO(elementToUpdate), HttpStatus.OK);
