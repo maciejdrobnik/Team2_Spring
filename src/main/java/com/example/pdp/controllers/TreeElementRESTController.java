@@ -321,7 +321,7 @@ public class TreeElementRESTController {
                     tags.add(newTag);
                     elementToUpdate.setTags(tags);
                 }
-                else if(elementTags.contains(tag)){
+                else{
                     Tag newTag = new Tag();
                     newTag.setName(tag);
                     newTag.setId(tagRepository.findByName(tag.toLowerCase()).getId());
@@ -381,7 +381,7 @@ public class TreeElementRESTController {
                     tags.add(newTag);
                     elementToUpdate.setTags(tags);
                 }
-                else if(elementTags.contains(tag)){
+                else {
                     Tag newTag = new Tag();
                     newTag.setName(tag);
                     newTag.setId(tagRepository.findByName(tag.toLowerCase()).getId());
